@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socratic Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        /* Common Styles */
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f4f8;
+            color: #202123;
+        }
+        /* Cover Page Styles */
+        .cover-page {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .cover-container {
+            text-align: center;
+            padding: 2rem;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            width: 90%;
+        }
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #10a37f;
+            margin-bottom: 1rem;
+        }
+        p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Zoom-in animation for chat bubbles */
+@keyframes zoomIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.chat-bubble {
+    animation: zoomIn 0.3s ease-out;
+}
+
+        .start-button {
+            background-color: #10a37f;
+            color: white;
+            border: none;
+            padding: 0.8rem 2rem;
+            font-size: 1.1rem;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .start-button:hover {
+            background-color: #0e906f;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+        }
+        /* Chat Interface Styles */
+        .chat-page {
+            display: none;
+            flex-direction: column;
+            height: 100vh;
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            background-color: #ffffff;
+        }
+        .chat-header {
+            font-size: 1.8em;
+            font-weight: 600;
+            padding: 20px;
+            text-align: center;
+            color: #10a37f;
+            background-color: #f9fafb;
+            border-bottom: 1px solid #e5e7eb;
+            position: relative; /* Needed for absolute positioning of the Clear History button */
+        }
+        .chat-history {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #ffffff;
+        }
+        .chat-bubble {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .chat-bubble.user {
+            justify-content: flex-end;
+        }
+        .bubble {
+            max-width: 80%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            font-size: 0.95em;
+            line-height: 1.5;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .bubble.user {
+            background-color: #10a37f;
+            color: #ffffff;
+        }
+        .bubble.ai {
+            background-color: #f0f4f8;
+            color: #202123;
+        }
+        .chat-input-container {
+            display: flex;
+            padding: 20px;
+            background-color: #ffffff;
+            border-top: 1px solid #e5e7eb;
+        }
+        .chat-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 2px solid #d1d5db;
+            border-radius: 24px;
+            font-size: 1em;
+            margin-right: 10px;
+        }
+        .chat-input:focus {
+            outline: none;
+            border-color: #10a37f;
+            box-shadow: 0 0 0 3px rgba(16, 163, 127, 0.2);
+        }
+        .send-button {
+            padding: 12px 24px;
+            background-color: #10a37f;
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: 500;
+        }
+        .send-button:hover {
+            background-color: #0e906f;
+        }
+        .spark-loader {
+            display: none;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .spark-loader .dot {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            background-color: #10a37f;
+            border-radius: 50%;
+            margin: 0 3px;
+            animation: bounce 0.6s infinite alternate;
+        }
+        .spark-loader .dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        .spark-loader .dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        @keyframes bounce {
+            to {
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Smooth scroll effect */
+        .chat-history {
+            scroll-behavior: smooth;
+        }
+        
+        
+        /* Shake animation for input on error */
+@keyframes shake {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-5px);
+    }
+    50% {
+        transform: translateX(5px);
+    }
+    75% {
+        transform: translateX(-5px);
+    }
+}
+
+.chat-input.error {
+    animation: shake 0.5s ease;
+    border-color: #ff4d4d;
+}
+
+        /* Clear History Button */
+        .clear-history-button {
+            position: absolute;
+            top: 50%;
+            right: 20px;
+            transform: translateY(-50%);
+            background-color: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            border-radius: 24px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .clear-history-button:hover {
+            background-color: #e60000;
+        }
+
+        /* Dark mode styles */
+        @media (prefers-color-scheme: dark) {
+            body {
+                background-color: #1a1a1a;
+                color: #e0e0e0;
+            }
+            .cover-container, .chat-container, .chat-history, .chat-input-container {
+                background-color: #2a2a2a;
+            }
+            .chat-header {
+                background-color: #333333;
+                border-bottom-color: #444444;
+            }
+            h1, .chat-header {
+                color: #3dd5af;
+            }
+            .start-button, .send-button {
+                background-color: #3dd5af;
+            }
+            .start-button:hover, .send-button:hover {
+                background-color: #2ec49e;
+            }
+            .bubble.ai {
+                background-color: #404040;
+                color: #e0e0e0;
+            }
+            .chat-input {
+                background-color: #333333;
+                color: #e0e0e0;
+                border-color: #555555;
+            }
+            .chat-input:focus {
+                border-color: #3dd5af;
+            }
+            .spark-loader .dot {
+                background-color: #3dd5af;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Cover Page -->
+    <div class="cover-page" id="coverPage">
+        <div class="cover-container">
+            <img src="/Users/devayushrout/Desktop/MAIN SOCRATIC PROJECT/images/a.svg" alt="Logo" class="logo">
+            <h1>Hello, Scholar!</h1>
+            <p>Are you ready to dive in the world of Data Structures and Algorithms?</p>
+            <button class="start-button" id="startButton">Let's Begin</button>
+        </div>
+    </div>
+
+    <!-- Chat Interface -->
+    <div class="chat-page" id="chatPage">
+        <div class="chat-container">
+            <div class="chat-header">
+                Scholar Bot
+                <button class="clear-history-button" id="clearHistoryButton">Clear History</button>
+            </div>
+            <div class="chat-history" id="chatHistory"></div>
+            <div class="chat-input-container">
+                <div class="spark-loader" id="sparkLoader">
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                    <div class="dot"></div>
+                </div>
+                <input type="text" id="user_input" class="chat-input" placeholder="Type your creativity..."/>
+                <button class="send-button" id="sendBtn">Send</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function() {
+            // Transition from cover page to chat page
+            $('#startButton').click(function() {
+                $('#coverPage').fadeOut(400, function() {
+                    $('#chatPage').fadeIn(400);
+                    addMessage('ai', 'What do you know about Sorting?');
+                });
+            });
+    
+            // Event listener for send button and Enter key press
+            $('#sendBtn').click(function() {
+                if (!$('#sendBtn').prop('disabled')) { // Check if button is not disabled
+                    sendMessage();
+                }
+            });
+    
+            $('#user_input').keypress(function(e) {
+                if (e.which === 13 && !$('#sendBtn').prop('disabled')) { // Check if input is enabled
+                    sendMessage();
+                }
+            });
+    
+            // Clear history event listener
+            $('#clearHistoryButton').click(function() {
+                clearHistory();
+            });
+    
+            function sendMessage() {
+                const user_input = $('#user_input').val().trim();
+                if (user_input === '') return;
+    
+                addMessage('user', user_input);
+                showLoader();
+    
+                // Disable input and send button while processing the AI response
+                $('#user_input').prop('disabled', true);
+                $('#sendBtn').prop('disabled', true);
+    
+                // Check for errors in input
+                const errorResponse = checkForErrors(user_input);
+                if (errorResponse) {
+                    hideLoader();
+                    addMessage('ai', errorResponse);
+                    $('#user_input').val(''); // Clear input field
+                    return;
+                }
+    
+                // Make the AJAX request to get AI response
+                $.ajax({
+                    type: 'POST',
+                    url: '/get_response',
+                    contentType: 'application/json',
+                    data: JSON.stringify({ message: user_input }),
+                    success: function(response) {
+                        hideLoader();
+                        addMessage('ai', response.response, true); // Typewriter effect
+    
+                        // Re-enable input and send button only after AI has finished typing the response
+                    },
+                    error: function() {
+                        hideLoader();
+                        addMessage('ai', "Sorry, there was an error processing your request.");
+    
+                        // Re-enable input and send button even in case of an error
+                        $('#user_input').prop('disabled', false);
+                        $('#sendBtn').prop('disabled', false);
+                    }
+                });
+    
+                $('#user_input').val(''); // Clear input field after sending
+            }
+    
+            // Function to check for common user input errors
+            function checkForErrors(input) {
+                if (input.includes('undefined')) {
+                    $('#user_input').addClass('error');
+                    setTimeout(() => $('#user_input').removeClass('error'), 500); // Shake animation
+                    return "It seems you're trying to access a variable that hasn't been defined.";
+                }
+    
+                if (input.includes('syntax error')) {
+                    return "There seems to be a syntax error in your code. Check for missing semicolons or mismatched brackets.";
+                }
+    
+                return null; // No error found
+            }
+    
+            // Function to add message bubbles to the chat
+            function addMessage(sender, message, isLive = false) {
+                const bubble = $('<div class="chat-bubble ' + sender + '"><div class="bubble ' + sender + '"></div></div>');
+                $('#chatHistory').append(bubble);
+    
+                if (isLive && sender === 'ai') {
+                    typeText(bubble.find('.bubble'), message, 0); // Use typewriter effect for AI responses
+                } else {
+                    bubble.find('.bubble').text(message);
+                    reEnableInput(); // Re-enable input if no typewriter effect is used
+                }
+    
+                $('#chatHistory').scrollTop($('#chatHistory')[0].scrollHeight); // Scroll to bottom
+            }
+    
+            // Function to handle live text typing effect for AI responses
+            function typeText(element, message, index) {
+                if (index < message.length) {
+                    element.append(message[index]);
+                    setTimeout(function() {
+                        typeText(element, message, index + 1);
+                    }, 50); // Adjust speed by changing this value (50ms per character)
+                } else {
+                    // Re-enable input and send button after the full response is typed
+                    reEnableInput();
+                }
+            }
+    
+            // Function to re-enable input and send button after AI response is complete
+            function reEnableInput() {
+                $('#user_input').prop('disabled', false);
+                $('#sendBtn').prop('disabled', false);
+            }
+    
+            // Function to show loader while AI is generating a response
+            function showLoader() {
+                $('#sparkLoader').show();
+            }
+    
+            // Function to hide loader after AI finishes response
+            function hideLoader() {
+                $('#sparkLoader').hide();
+            }
+    
+            // Function to clear chat history
+            function clearHistory() {
+                $('#chatHistory').empty(); // Clears the chat history container
+            }
+        });
+    </script>
+
+</body>
+</html>
