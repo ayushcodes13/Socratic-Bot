@@ -1,5 +1,5 @@
 import google.generativeai as genai
-from flask import Flask, render_template, request, jsonify, send_from_directory
+from flask import Flask, render_template, request, jsonify
 import os
 
 # Configure Google Generative AI
@@ -22,7 +22,7 @@ def socratic_assistant(prompt):
 
 @app.route('/')
 def index():
-    return send_from_directory('.', 'index.html')
+    return render_template('index.html')  # Render index.html from templates folder
 
 @app.route('/get_response', methods=['POST'])
 def get_response():
