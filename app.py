@@ -2,24 +2,30 @@ from flask import Flask, render_template, request, jsonify
 import google.generativeai as genai
 from flask_cors import CORS
 import os
+import logging
 
 app = Flask(__name__)
 CORS(app)
 
-# Configure Google Generative AI
-genai.configure(api_key=os.environ.get("AIzaSyBr2llpR5tvIKOXWt21ujRhAh9HeG-UJNM"))
+# Configure Google Generative 
 
-# Store conversation history (Note: This will reset on each function call in serverless environment)
+genai.configure(api_key='AIzaSyBr2llpR5tvIKOXWt21ujRhAh9HeG-UJNM')  # Use the retrieved API key
+
+# Store conversation history
 conversation_history = []
 
 def socratic_assistant(prompt):
-    model = genai.GenerativeModel('gemini-1.5-pro')
-    response = model.generate_content(prompt)
-    
-    if response and response.text:
-        return response.text
-    else:
-        return "Sorry, I couldn't generate a response."
+    try:
+        model = genai.GenerativeModel('gemini-1.5-pro')
+        response = model.generate_content(prompt)
+        
+        if response and response.text:
+            return response.text
+        else:
+            return "Sorry, I couldn't generate a response."
+    except Exception as e:
+        logging.error(f"Error generating content: {e}")
+        return "Sorry, there was an error processing your request."
 
 @app.route('/')
 def index():
@@ -56,8 +62,8 @@ def get_response():
     return jsonify({'response': result})
 
 # Vercel requires a handler function
-def handler(event, context):
-    return app(event, context)
+def handler(request):
+    return app(request)
 
 if __name__ == "__main__":
     app.run(debug=True)
