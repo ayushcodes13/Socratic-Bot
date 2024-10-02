@@ -1,18 +1,19 @@
-import google.generativeai as genai
 from flask import Flask, render_template, request, jsonify
+import google.generativeai as genai
+from flask_cors import CORS
 import os
 
-# Configure Google Generative AI
-genai.configure(api_key="AIzaSyBr2llpR5tvIKOXWt21ujRhAh9HeG-UJNM")
-
-# Create a Flask app
 app = Flask(__name__)
+CORS(app)
 
-# Store conversation history
+# Configure Google Generative AI
+genai.configure(api_key=os.environ.get("AIzaSyBr2llpR5tvIKOXWt21ujRhAh9HeG-UJNM"))
+
+# Store conversation history (Note: This will reset on each function call in serverless environment)
 conversation_history = []
 
 def socratic_assistant(prompt):
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-pro')
     response = model.generate_content(prompt)
     
     if response and response.text:
@@ -22,7 +23,7 @@ def socratic_assistant(prompt):
 
 @app.route('/')
 def index():
-    return render_template('index.html')  # Render index.html from templates folder
+    return render_template('index.html')
 
 @app.route('/get_response', methods=['POST'])
 def get_response():
@@ -53,6 +54,10 @@ def get_response():
     
     # Return the AI's response
     return jsonify({'response': result})
+
+# Vercel requires a handler function
+def handler(event, context):
+    return app(event, context)
 
 if __name__ == "__main__":
     app.run(debug=True)
