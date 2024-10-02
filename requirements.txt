@@ -1,4 +1,4 @@
-Flask==3.0.3                  # Flask web framework
+Flask==2.0.1                 # Flask web framework
 google-auth==2.35.0            # Required for authentication
 google-auth-httplib2==0.2.0     # HTTP transport support for google-auth
 google-generativeai==0.8.2      # Main library for Google Generative AI

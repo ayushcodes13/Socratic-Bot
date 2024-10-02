@@ -7,8 +7,7 @@ import logging
 app = Flask(__name__)
 CORS(app)
 
-# Configure Google Generative 
-
+# Configure Google Generative AI
 genai.configure(api_key='AIzaSyBr2llpR5tvIKOXWt21ujRhAh9HeG-UJNM')  # Use the retrieved API key
 
 # Store conversation history
@@ -66,4 +65,4 @@ def handler(request):
     return app(request)
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=8080)
