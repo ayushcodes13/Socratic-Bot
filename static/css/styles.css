@@ -50,6 +50,7 @@ p {
         opacity: 1;
     }
 }
+
 .chat-bubble {
     animation: zoomIn 0.3s ease-out;
 }
@@ -90,7 +91,7 @@ p {
     color: #10a37f;
     background-color: #f9fafb;
     border-bottom: 1px solid #e5e7eb;
-    position: relative; /* Needed for absolute positioning of the Clear History button */
+    position: relative;
 }
 .chat-history {
     flex-grow: 1;
@@ -198,6 +199,7 @@ p {
         transform: translateX(-5px);
     }
 }
+
 .chat-input.error {
     animation: shake 0.5s ease;
     border-color: #ff4d4d;
@@ -242,6 +244,21 @@ p {
         background-color: #3dd5af;
     }
     .start-button:hover, .send-button:hover {
-        background-color: #33b895;
+        background-color: #2ec49e;
+    }
+    .bubble.ai {
+        background-color: #404040;
+        color: #e0e0e0;
+    }
+    .chat-input {
+        background-color: #333333;
+        color: #e0e0e0;
+        border-color: #555555;
+    }
+    .chat-input:focus {
+        border-color: #3dd5af;
+    }
+    .spark-loader .dot {
+        background-color: #3dd5af;
     }
 }
